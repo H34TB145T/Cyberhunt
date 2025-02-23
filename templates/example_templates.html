@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Request</title>
+</head>
+<body>
+    <h1>We need your location</h1>
+    <p>Please allow location access to continue.</p>
+    <button onclick="getLocation()">Allow Location Access</button>
+
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(sendLocation, retryLocation);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function sendLocation(position) {
+            const locationData = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+                altitude: position.coords.altitude,
+                heading: position.coords.heading,
+                speed: position.coords.speed
+            };
+
+            fetch('/location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(locationData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+
+        function retryLocation(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    alert("User denied the request for Geolocation. Please allow location access to continue.");
+                    getLocation();
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert("Location information is unavailable. Please try again.");
+                    getLocation();
+                    break;
+                case error.TIMEOUT:
+                    alert("The request to get user location timed out. Please try again.");
+                    getLocation();
+                    break;
+                case error.UNKNOWN_ERROR:
+                    alert("An unknown error occurred. Please try again.");
+                    getLocation();
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
